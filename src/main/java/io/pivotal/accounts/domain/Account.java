@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Enumerated;
+import javax.persistence.EnumType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -36,53 +39,37 @@ public class Account implements Serializable {
     @Column(name = "id")
 	private Integer id;
 
-	@Column(name = "address", length = 250)
-    private String address;
-
-	@Column(name = "passwd", length = 250)
-    private String passwd;
-
-	@Column(name = "userid", length = 250, unique = true)
+	@Column(name = "userid", length = 250)
     @NotNull
     private String userid;
-
-	@Column(name = "email", length = 250)
-    private String email;
-
-	@Column(name = "creditcard", length = 250)
-    private String creditcard;
-
-	@Column(name = "fullname", length = 250)
-    private String fullname;
-
-	@Column(name = "authtoken", length = 100)
-    private String authtoken;
+	
+	@Column(name = "name", length = 250)
+    @NotNull
+    private String name;
+	
+	@Column(name = "accounttype")
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	//@Convert(converter = AccountTypeConverter.class)
+	private AccountType type;
 
 	@Column(name = "creationdate")
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(style = "LL")
+	@NotNull
     private Date creationdate;
 
 	@Column(name = "openbalance", precision = 14, scale = 2, nullable=false)
 	@NotNull
     private BigDecimal openbalance = new BigDecimal(0);
 
-	@Column(name = "logoutcount")
-	@NotNull
-    private Integer logoutcount;
-
 	@Column(name = "balance", precision = 14, scale = 2, nullable=false)
 	@NotNull
     private BigDecimal balance = new BigDecimal(0);
-
-	@Column(name = "lastlogin")
-	@Temporal(TemporalType.TIMESTAMP)
-	@DateTimeFormat(style = "LL")
-    private Date lastlogin;
-
-	@Column(name = "logincount")
+	
+	@Column(name = "currency", length = 3)
 	@NotNull
-    private Integer logincount;
+	private String currency;
 
 	public Integer getId() {
 		return id;
@@ -90,22 +77,6 @@ public class Account implements Serializable {
 
 	public void setId(Integer id) {
 		this.id = id;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public String getPasswd() {
-		return passwd;
-	}
-
-	public void setPasswd(String passwd) {
-		this.passwd = passwd;
 	}
 
 	public String getUserid() {
@@ -116,28 +87,12 @@ public class Account implements Serializable {
 		this.userid = userid;
 	}
 
-	public String getEmail() {
-		return email;
+	public AccountType getType() {
+		return type;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getCreditcard() {
-		return creditcard;
-	}
-
-	public void setCreditcard(String creditcard) {
-		this.creditcard = creditcard;
-	}
-
-	public String getFullname() {
-		return fullname;
-	}
-
-	public void setFullname(String fullname) {
-		this.fullname = fullname;
+	public void setType(AccountType type) {
+		this.type = type;
 	}
 
 	public Date getCreationdate() {
@@ -153,16 +108,7 @@ public class Account implements Serializable {
 	}
 
 	public void setOpenbalance(BigDecimal openbalance) {
-		if (openbalance != null)
-			this.openbalance = openbalance;
-	}
-
-	public Integer getLogoutcount() {
-		return logoutcount;
-	}
-
-	public void setLogoutcount(Integer logoutcount) {
-		this.logoutcount = logoutcount;
+		this.openbalance = openbalance;
 	}
 
 	public BigDecimal getBalance() {
@@ -170,76 +116,39 @@ public class Account implements Serializable {
 	}
 
 	public void setBalance(BigDecimal balance) {
-		if (balance != null)
-			this.balance = balance;
+		this.balance = balance;
 	}
 
-	public Date getLastlogin() {
-		return lastlogin;
+	public String getCurrency() {
+		return currency;
 	}
 
-	public void setLastlogin(Date lastlogin) {
-		this.lastlogin = lastlogin;
+	public void setCurrency(String currency) {
+		this.currency = currency;
 	}
 
-	public Integer getLogincount() {
-		return logincount;
+	public String getName() {
+		return name;
 	}
 
-	public void setLogincount(Integer logincount) {
-		this.logincount = logincount;
-	}
-
-	public String getAuthtoken() {
-		return authtoken;
-	}
-
-	public void setAuthtoken(String authtoken) {
-		this.authtoken = authtoken;
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Account [id=").append(id).append(", address=")
-				.append(address).append(", passwd=").append("PASSWD OMMITED")
-				.append(", userid=").append(userid).append(", email=")
-				.append(email).append(", creditcard=").append(creditcard)
-				.append(", fullname=").append(fullname).append(", authtoken=")
-				.append(authtoken).append(", creationdate=")
-				.append(creationdate).append(", openbalance=")
-				.append(openbalance).append(", logoutcount=")
-				.append(logoutcount).append(", balance=").append(balance)
-				.append(", lastlogin=").append(lastlogin)
-				.append(", logincount=").append(logincount).append("]");
-		return builder.toString();
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((address == null) ? 0 : address.hashCode());
-		result = prime * result
-				+ ((authtoken == null) ? 0 : authtoken.hashCode());
 		result = prime * result + ((balance == null) ? 0 : balance.hashCode());
 		result = prime * result
 				+ ((creationdate == null) ? 0 : creationdate.hashCode());
 		result = prime * result
-				+ ((creditcard == null) ? 0 : creditcard.hashCode());
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result
-				+ ((fullname == null) ? 0 : fullname.hashCode());
+				+ ((currency == null) ? 0 : currency.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result
-				+ ((lastlogin == null) ? 0 : lastlogin.hashCode());
-		result = prime * result
-				+ ((logincount == null) ? 0 : logincount.hashCode());
-		result = prime * result
-				+ ((logoutcount == null) ? 0 : logoutcount.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result
 				+ ((openbalance == null) ? 0 : openbalance.hashCode());
-		result = prime * result + ((passwd == null) ? 0 : passwd.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((userid == null) ? 0 : userid.hashCode());
 		return result;
 	}
@@ -253,16 +162,6 @@ public class Account implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Account other = (Account) obj;
-		if (address == null) {
-			if (other.address != null)
-				return false;
-		} else if (!address.equals(other.address))
-			return false;
-		if (authtoken == null) {
-			if (other.authtoken != null)
-				return false;
-		} else if (!authtoken.equals(other.authtoken))
-			return false;
 		if (balance == null) {
 			if (other.balance != null)
 				return false;
@@ -273,50 +172,27 @@ public class Account implements Serializable {
 				return false;
 		} else if (!creationdate.equals(other.creationdate))
 			return false;
-		if (creditcard == null) {
-			if (other.creditcard != null)
+		if (currency == null) {
+			if (other.currency != null)
 				return false;
-		} else if (!creditcard.equals(other.creditcard))
-			return false;
-		if (email == null) {
-			if (other.email != null)
-				return false;
-		} else if (!email.equals(other.email))
-			return false;
-		if (fullname == null) {
-			if (other.fullname != null)
-				return false;
-		} else if (!fullname.equals(other.fullname))
+		} else if (!currency.equals(other.currency))
 			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (lastlogin == null) {
-			if (other.lastlogin != null)
+		if (name == null) {
+			if (other.name != null)
 				return false;
-		} else if (!lastlogin.equals(other.lastlogin))
-			return false;
-		if (logincount == null) {
-			if (other.logincount != null)
-				return false;
-		} else if (!logincount.equals(other.logincount))
-			return false;
-		if (logoutcount == null) {
-			if (other.logoutcount != null)
-				return false;
-		} else if (!logoutcount.equals(other.logoutcount))
+		} else if (!name.equals(other.name))
 			return false;
 		if (openbalance == null) {
 			if (other.openbalance != null)
 				return false;
 		} else if (!openbalance.equals(other.openbalance))
 			return false;
-		if (passwd == null) {
-			if (other.passwd != null)
-				return false;
-		} else if (!passwd.equals(other.passwd))
+		if (type != other.type)
 			return false;
 		if (userid == null) {
 			if (other.userid != null)
@@ -324,6 +200,18 @@ public class Account implements Serializable {
 		} else if (!userid.equals(other.userid))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Account [id=").append(id).append(", userid=")
+				.append(userid).append(", name=").append(name)
+				.append(", type=").append(type).append(", creationdate=")
+				.append(creationdate).append(", openbalance=")
+				.append(openbalance).append(", balance=").append(balance)
+				.append(", currency=").append(currency).append("]");
+		return builder.toString();
 	}
 
 }

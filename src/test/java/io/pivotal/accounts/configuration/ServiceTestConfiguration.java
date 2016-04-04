@@ -125,10 +125,6 @@ public class ServiceTestConfiguration  {
 		//when(accountService.saveAccountProfile(any(Accountprofile.class))).thenReturn(accountProfile());
 		when(accountService.findAccount(eq(ACCOUNT_ID))).thenReturn(account());
 		//when(accountService.findAccountByProfile(any(Accountprofile.class))).thenReturn(account());
-		when(accountService.login(eq(USER_ID), eq(PASSWORD))).thenReturn(loginResponse());
-		when(accountService.login(eq(BAD_USER_ID), eq(BAD_PASSWORD))).thenReturn(null);
-
-		doNothing().when(accountService).logout(any(String.class));
 		return accountService;
 	}
 	
@@ -145,18 +141,15 @@ public class ServiceTestConfiguration  {
 		account.setId(PROFILE_ID);
 		account.setBalance(ACCOUNT_BALANCE);
 		account.setOpenbalance(ACCOUNT_OPEN_BALANCE);
-		account.setLogincount(LOGIN_COUNT);
-		account.setLogoutcount(LOGOUT_COUNT);
 		account.setCreationdate(ACCOUNT_DATE);
-		account.setLastlogin(ACCOUNT_DATE);
 		account.setUserid(USER_ID);
-		account.setPasswd(PASSWORD);
-		account.setAddress(ADDRESS);
-		account.setEmail(EMAIL);
-		account.setFullname(FULL_NAME);
-		account.setCreditcard(CC_NUMBER);
-		account.setAuthtoken(AUTH_TOKEN);
 		return account;
+	}
+	
+	public static List<Account> accountList() {
+		List<Account> accounts = new ArrayList();
+		accounts.add(account());
+		return accounts;
 	}
 	
 	public static Map<String,Object> loginResponse() {

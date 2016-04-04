@@ -1,8 +1,10 @@
 package io.pivotal.accounts.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import io.pivotal.accounts.domain.Account;
+import io.pivotal.accounts.domain.AccountType;
 import io.pivotal.accounts.service.AccountService;
 
 import org.slf4j.Logger;
@@ -49,13 +51,13 @@ public class AccountController {
 	private AccountService service;
 
 	/**
-	 * REST call to retrieve the account with the given id as userId.
+	 * REST call to retrieve the account with the given id.
 	 * 
 	 * @param id
-	 *            The id of the user to retrieve the account for.
+	 *            The id of the account to retrieve the account for.
 	 * @return The account object if found.
 	 */
-	@RequestMapping(value = "/account/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/accounts/{id}", method = RequestMethod.GET)
 	public ResponseEntity<Account> find(@PathVariable("id") final Integer id) {
 
 		logger.info("AccountController.find: id=" + id);
@@ -65,16 +67,19 @@ public class AccountController {
 
 	}
 
-	// TODO: do we need this? need to change web service to use find() above.
-	@RequestMapping(value = "/account/", method = RequestMethod.GET)
-	public ResponseEntity<Account> findAccount(@RequestParam(value = "name") final String id) {
+	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
+	public ResponseEntity<List<Account>> findAccounts(@RequestParam(value = "name") final String id,@RequestParam(value = "type", required = false) final String type) {
 
 		logger.info("AccountController.findAccount: id=" + id);
-
-		Account accountResponse = this.service.findAccount(id);
-		return new ResponseEntity<Account>(accountResponse, getNoCacheHeaders(), HttpStatus.OK);
-
+		if (type == null) {
+			List<Account> accountResponse = this.service.findAccounts(id);
+			return new ResponseEntity<List<Account>>(accountResponse, getNoCacheHeaders(), HttpStatus.OK);
+		} else {
+			List<Account> accountResponse = this.service.findAccountsByType(id, AccountType.valueOf(type));
+			return new ResponseEntity<List<Account>>(accountResponse, getNoCacheHeaders(), HttpStatus.OK);
+		}
 	}
+	
 
 	/**
 	 * REST call to save the account provided in the request body.
@@ -84,7 +89,7 @@ public class AccountController {
 	 * @param builder
 	 * @return
 	 */
-	@RequestMapping(value = "/account", method = RequestMethod.POST)
+	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
 	public ResponseEntity<String> save(@RequestBody Account accountRequest, UriComponentsBuilder builder) {
 
 		logger.debug("AccountController.save: userId=" + accountRequest.getUserid());
@@ -94,7 +99,10 @@ public class AccountController {
 		responseHeaders.setLocation(builder.path("/account/{id}").buildAndExpand(accountProfileId).toUri());
 		return new ResponseEntity<String>(responseHeaders, HttpStatus.CREATED);
 	}
+	
+	//TODO: consolidate increaseBalance and decreaseBalance into a POST for a transaction.
 
+	//TODO: this should be a POST
 	/**
 	 * REST call to decrease the balance in the account. Decreases the balance
 	 * of the account if the new balance is not lower than zero. Returns HTTP OK
@@ -102,18 +110,18 @@ public class AccountController {
 	 * EXPECTATION_FAILED if the new balance would be negative and the
 	 * old/current balance.
 	 * 
-	 * @param userId
+	 * @param accountId
 	 *            The id of the account.
 	 * @param amount
 	 *            The amount to decrease the balance by.
 	 * @return The new balance of the account with HTTP OK.
 	 */
-	@RequestMapping(value = "/accounts/{userId}/decreaseBalance/{amount}", method = RequestMethod.GET)
-	public ResponseEntity<Double> decreaseBalance(@PathVariable("userId") final String userId, @PathVariable("amount") final double amount) {
+	@RequestMapping(value = "/accounts/{accountId}/decreaseBalance/{amount}", method = RequestMethod.GET)
+	public ResponseEntity<Double> decreaseBalance(@PathVariable("accountId") final Integer accountId, @PathVariable("amount") final double amount) {
 
-		logger.debug("AccountController.decreaseBalance: id='" + userId + "', amount='" + amount + "'");
+		logger.debug("AccountController.decreaseBalance: id='" + accountId + "', amount='" + amount + "'");
 
-		Account accountResponse = this.service.findAccount(userId);
+		Account accountResponse = this.service.findAccount(accountId);
 
 		BigDecimal currentBalance = accountResponse.getBalance();
 
@@ -131,24 +139,25 @@ public class AccountController {
 
 	}
 
+	//TODO: this should be a POST
 	/**
 	 * REST call to increase the balance in the account. Increases the balance
 	 * of the account if the amount is not negative. Returns HTTP OK and the new
 	 * balance if the increase was successful, or HTTP EXPECTATION_FAILED if the
 	 * amount given is negative.
 	 * 
-	 * @param userId
+	 * @param accountId
 	 *            The id of the account.
 	 * @param amount
 	 *            The amount to increase the balance by.
 	 * @return The new balance of the account with HTTP OK.
 	 */
-	@RequestMapping(value = "/accounts/{userId}/increaseBalance/{amount}", method = RequestMethod.GET)
-	public ResponseEntity<Double> increaseBalance(@PathVariable("userId") final String userId, @PathVariable("amount") final double amount) {
+	@RequestMapping(value = "/accounts/{accountId}/increaseBalance/{amount}", method = RequestMethod.GET)
+	public ResponseEntity<Double> increaseBalance(@PathVariable("accountId") final Integer accountId, @PathVariable("amount") final double amount) {
 
-		logger.debug("AccountController.increaseBalance: id='" + userId + "', amount='" + amount + "'");
+		logger.debug("AccountController.increaseBalance: id='" + accountId + "', amount='" + amount + "'");
 
-		Account accountResponse = this.service.findAccount(userId);
+		Account accountResponse = this.service.findAccount(accountId);
 
 		BigDecimal currentBalance = accountResponse.getBalance();
 
