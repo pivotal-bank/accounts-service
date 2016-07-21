@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Bean;
 public class AccountsApplication {
 
 	@Bean
-	public Sampler<?> defaultSampler() {
+	public Sampler defaultSampler() {
 		return new AlwaysSampler();
 	}
 	

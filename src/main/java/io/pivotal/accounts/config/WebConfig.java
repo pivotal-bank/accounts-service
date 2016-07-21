@@ -65,20 +65,5 @@ public class WebConfig extends WebMvcConfigurationSupport {
 		// mappingJacksonHttpMessageConverter.getObjectMapper().getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
 		converters.add(mappingJacksonHttpMessageConverter);
 	}
-	/*
-	public void configureDefaultServletHandling(
-			DefaultServletHandlerConfigurer configurer) {
-		configurer.enable();
-	}
 
-	@Override
-	public void configureHandlerExceptionResolvers(
-			List<HandlerExceptionResolver> exceptionResolvers) {
-		ExtendedExceptionHandlerExceptionResolver customResolver = new ExtendedExceptionHandlerExceptionResolver();
-		customResolver.setExceptionHandler(new GlobalExceptionHandler());
-		customResolver.setMessageConverters(getMessageConverters());
-		customResolver.afterPropertiesSet();
-		exceptionResolvers.add(customResolver);
-	}
-*/
 }
