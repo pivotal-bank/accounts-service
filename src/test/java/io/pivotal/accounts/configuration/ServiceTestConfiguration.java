@@ -21,6 +21,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import io.pivotal.accounts.domain.Account;
+import io.pivotal.accounts.domain.Transaction;
+import io.pivotal.accounts.domain.TransactionType;
 import io.pivotal.accounts.repository.AccountRepository;
 import io.pivotal.accounts.service.AccountService;
 
@@ -138,11 +140,12 @@ public class ServiceTestConfiguration  {
 	@Bean 
 	public static Account account() {
 		Account account = new Account();
-		account.setId(PROFILE_ID);
+		account.setId(ACCOUNT_ID);
 		account.setBalance(ACCOUNT_BALANCE);
 		account.setOpenbalance(ACCOUNT_OPEN_BALANCE);
 		account.setCreationdate(ACCOUNT_DATE);
 		account.setUserid(USER_ID);
+		account.setCurrency("GBP");
 		return account;
 	}
 	
@@ -158,5 +161,41 @@ public class ServiceTestConfiguration  {
 		loginResponse.put("authToken", AUTH_TOKEN);
 		loginResponse.put("accountid", PROFILE_ID);
 		return loginResponse;
+	}
+	
+	public static Transaction getDebitTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(account().getBalance().subtract(BigDecimal.valueOf(10)));
+		tx.setType(TransactionType.DEBIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getBadDebitTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(account().getBalance().add(BigDecimal.valueOf(10)));
+		tx.setType(TransactionType.DEBIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getCreditTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(new BigDecimal(1000));
+		tx.setType(TransactionType.CREDIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getBadCreditTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(new BigDecimal(-1000));
+		tx.setType(TransactionType.CREDIT);
+		tx.setCurrency("GBP");
+		return tx;
 	}
 }
