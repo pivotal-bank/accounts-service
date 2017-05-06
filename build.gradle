@@ -1,10 +1,9 @@
 buildscript {
 	ext {
-		springBootVersion = '1.3.5.RELEASE'
-		springCloudStarterParentTrain = 'Brixton.SR3'
-		scsVersion = '1.1.1.RELEASE'
+		springBootVersion = '1.4.6.RELEASE'
+		springCloudStarterParentTrain = 'Camden.SR6'
+		scsVersion = '1.4.1.RELEASE'
 		junitVersion = '4.12'
-		dependencyPlugin = '0.5.6.RELEASE'
 	}
 
 	repositories {
@@ -15,7 +14,6 @@ buildscript {
 	}
 
 	dependencies {
-		classpath "io.spring.gradle:dependency-management-plugin:${dependencyPlugin}"
 		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
 		classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:1.4.7"
 	}
@@ -31,7 +29,7 @@ apply plugin: 'java'
 apply plugin: 'jacoco'
 apply from: "$projectDir/gradle/versioning.gradle"
 apply plugin: 'eclipse'
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 apply plugin: "io.spring.dependency-management"
 apply plugin: "com.gorylenko.gradle-git-properties"
 
@@ -83,7 +81,7 @@ repositories {
 }
 
 dependencyManagement {
-		imports { 
+		imports {
 			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudStarterParentTrain}"
             mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:${scsVersion}"
 		}
@@ -96,6 +94,8 @@ dependencies {
 		compile "org.springframework.boot:spring-boot-starter-actuator"
 		compile "org.springframework.boot:spring-boot-starter-data-jpa"
 		compile "org.springframework.cloud:spring-cloud-starter-sleuth"
+		compile "org.springframework.cloud:spring-cloud-starter-zipkin"
+		
 		compile "io.pivotal.spring.cloud:spring-cloud-services-starter-config-client"
 		compile "io.pivotal.spring.cloud:spring-cloud-services-starter-service-registry"
 		compile "io.pivotal.spring.cloud:spring-cloud-services-starter-circuit-breaker"
