@@ -57,6 +57,8 @@ jobs:
     trigger: true
   - task: build
     file: accounts-service/ci/tasks/build-account-service/task.yml
+    params:
+      ARTIFACT_ID: accounts
   - put: cf-zero-downtime-push
     resource: cf-env
     params:
