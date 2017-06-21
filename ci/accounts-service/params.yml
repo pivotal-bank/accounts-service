@@ -13,7 +13,3 @@ cf-config-server-label: master
 cf-db-service: p-mysql
 cf-db-service-plan: pre-existing-plan
 cf-db-service-name: traderdb
-git-private-key: |
-  -----BEGIN RSA PRIVATE KEY-----
-  ...
-  -----END RSA PRIVATE KEY-----
