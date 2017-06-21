@@ -110,7 +110,15 @@ jobs:
         service_instance: circuit-breaker-dashboard
         timeout: 300
         wait_for_service: true
-
+    - put: cf-create-service
+      resource: cf-env
+      params:
+        command: create-service
+        service: p-rabbitmq
+        plan: standard
+        service_instance: zipkinRabbit
+        timeout: 300
+        wait_for_service: true
 resources:
 - name: accounts-service
   type: git
