@@ -21,6 +21,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import io.pivotal.accounts.domain.Account;
+import io.pivotal.accounts.domain.Transaction;
+import io.pivotal.accounts.domain.TransactionType;
 import io.pivotal.accounts.repository.AccountRepository;
 import io.pivotal.accounts.service.AccountService;
 
@@ -125,10 +127,6 @@ public class ServiceTestConfiguration  {
 		//when(accountService.saveAccountProfile(any(Accountprofile.class))).thenReturn(accountProfile());
 		when(accountService.findAccount(eq(ACCOUNT_ID))).thenReturn(account());
 		//when(accountService.findAccountByProfile(any(Accountprofile.class))).thenReturn(account());
-		when(accountService.login(eq(USER_ID), eq(PASSWORD))).thenReturn(loginResponse());
-		when(accountService.login(eq(BAD_USER_ID), eq(BAD_PASSWORD))).thenReturn(null);
-
-		doNothing().when(accountService).logout(any(String.class));
 		return accountService;
 	}
 	
@@ -142,21 +140,19 @@ public class ServiceTestConfiguration  {
 	@Bean 
 	public static Account account() {
 		Account account = new Account();
-		account.setId(PROFILE_ID);
+		account.setId(ACCOUNT_ID);
 		account.setBalance(ACCOUNT_BALANCE);
 		account.setOpenbalance(ACCOUNT_OPEN_BALANCE);
-		account.setLogincount(LOGIN_COUNT);
-		account.setLogoutcount(LOGOUT_COUNT);
 		account.setCreationdate(ACCOUNT_DATE);
-		account.setLastlogin(ACCOUNT_DATE);
 		account.setUserid(USER_ID);
-		account.setPasswd(PASSWORD);
-		account.setAddress(ADDRESS);
-		account.setEmail(EMAIL);
-		account.setFullname(FULL_NAME);
-		account.setCreditcard(CC_NUMBER);
-		account.setAuthtoken(AUTH_TOKEN);
+		account.setCurrency("GBP");
 		return account;
+	}
+	
+	public static List<Account> accountList() {
+		List<Account> accounts = new ArrayList();
+		accounts.add(account());
+		return accounts;
 	}
 	
 	public static Map<String,Object> loginResponse() {
@@ -165,5 +161,41 @@ public class ServiceTestConfiguration  {
 		loginResponse.put("authToken", AUTH_TOKEN);
 		loginResponse.put("accountid", PROFILE_ID);
 		return loginResponse;
+	}
+	
+	public static Transaction getDebitTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(account().getBalance().subtract(BigDecimal.valueOf(10)));
+		tx.setType(TransactionType.DEBIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getBadDebitTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(account().getBalance().add(BigDecimal.valueOf(10)));
+		tx.setType(TransactionType.DEBIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getCreditTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(new BigDecimal(1000));
+		tx.setType(TransactionType.CREDIT);
+		tx.setCurrency("GBP");
+		return tx;
+	}
+	
+	public static Transaction getBadCreditTransaction() {
+		Transaction tx = new Transaction();
+		tx.setAccountId(account().getId());
+		tx.setAmount(new BigDecimal(-1000));
+		tx.setType(TransactionType.CREDIT);
+		tx.setCurrency("GBP");
+		return tx;
 	}
 }

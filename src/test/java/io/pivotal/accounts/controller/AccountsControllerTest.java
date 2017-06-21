@@ -11,13 +11,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import io.pivotal.accounts.configuration.ServiceTestConfiguration;
+import io.pivotal.accounts.domain.AccountType;
 import io.pivotal.accounts.service.AccountService;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -79,10 +82,10 @@ public class AccountsControllerTest {
 	@Test
 	public void doPostAccount() throws Exception {
 		when(service.saveAccount(ServiceTestConfiguration.account()))
-				.thenReturn(ServiceTestConfiguration.PROFILE_ID);
+				.thenReturn(ServiceTestConfiguration.ACCOUNT_ID);
 
 		mockMvc.perform(
-				post("/account").contentType(MediaType.APPLICATION_JSON)
+				post("/accounts").contentType(MediaType.APPLICATION_JSON)
 						.content(
 								convertObjectToJson(ServiceTestConfiguration
 										.account())))
@@ -96,11 +99,11 @@ public class AccountsControllerTest {
 	 */
 	@Test
 	public void doGetAccount() throws Exception {
-		when(service.findAccount(ServiceTestConfiguration.PROFILE_ID))
+		when(service.findAccount(ServiceTestConfiguration.ACCOUNT_ID))
 				.thenReturn(ServiceTestConfiguration.account());
 
 		mockMvc.perform(
-				get("/account/" + ServiceTestConfiguration.PROFILE_ID)
+				get("/accounts/" + ServiceTestConfiguration.ACCOUNT_ID)
 						.contentType(MediaType.APPLICATION_JSON).content(
 								convertObjectToJson(ServiceTestConfiguration
 										.account())))
@@ -111,7 +114,7 @@ public class AccountsControllerTest {
 								MediaType.APPLICATION_JSON))
 				.andExpect(
 						jsonPath("$.id").value(
-								ServiceTestConfiguration.PROFILE_ID))
+								ServiceTestConfiguration.ACCOUNT_ID))
 				.andExpect(
 						jsonPath("$.creationdate").value(
 								ServiceTestConfiguration.ACCOUNT_DATE.getTime()))
@@ -120,103 +123,166 @@ public class AccountsControllerTest {
 								ServiceTestConfiguration.ACCOUNT_OPEN_BALANCE
 										.doubleValue()))
 				.andExpect(
-						jsonPath("$.logoutcount").value(
-								ServiceTestConfiguration.LOGOUT_COUNT
-										.intValue()))
-				.andExpect(
 						jsonPath("$.balance").value(
 								ServiceTestConfiguration.ACCOUNT_BALANCE))
-				.andExpect(
-						jsonPath("$.lastlogin").value(
-								ServiceTestConfiguration.ACCOUNT_DATE.getTime()))
-				.andExpect(
-						jsonPath("$.logincount").value(
-								ServiceTestConfiguration.LOGIN_COUNT))
 				.andDo(print());
 	}
+	
 	/**
-	 * Test the GET to <code>/account/userid/increaseBalance/</code>.
+	 * Test the GET to <code>/accounts</code>.
+	 * test retrieval of accounts by username.
+	 * @throws Exception
+	 */
+	@Test
+	public void doGetAccounts() throws Exception {
+		when(service.findAccounts(ServiceTestConfiguration.USER_ID))
+				.thenReturn(Collections.singletonList(ServiceTestConfiguration.account()));
+
+		mockMvc.perform(
+				get("/accounts?name=" + ServiceTestConfiguration.USER_ID)
+						.contentType(MediaType.APPLICATION_JSON).content(
+								convertObjectToJson(ServiceTestConfiguration
+										.account())))
+				.andExpect(status().isOk())
+				.andDo(print())
+				.andExpect(
+						content().contentTypeCompatibleWith(
+								MediaType.APPLICATION_JSON))
+				.andExpect(
+						jsonPath("$[0].id").value(
+								ServiceTestConfiguration.ACCOUNT_ID))
+				.andExpect(
+						jsonPath("$[0].creationdate").value(
+								ServiceTestConfiguration.ACCOUNT_DATE.getTime()))
+				.andExpect(
+						jsonPath("$[0].openbalance").value(
+								ServiceTestConfiguration.ACCOUNT_OPEN_BALANCE
+										.doubleValue()))
+				.andExpect(
+						jsonPath("$[0].balance").value(
+								ServiceTestConfiguration.ACCOUNT_BALANCE))
+				.andDo(print());
+	}
+	
+	/**
+	 * Test the GET to <code>/accounts</code>.
+	 * test retrieval of accounts by username and type.
+	 * @throws Exception
+	 */
+	@Test
+	public void doGetAccountsWithType() throws Exception {
+		when(service.findAccountsByType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT))
+				.thenReturn(Collections.singletonList(ServiceTestConfiguration.account()));
+
+		mockMvc.perform(
+				get("/accounts")
+						.param("name",ServiceTestConfiguration.USER_ID)
+						.param("type","CURRENT")
+						.contentType(MediaType.APPLICATION_JSON).content(
+								convertObjectToJson(ServiceTestConfiguration
+										.account())))
+				.andExpect(status().isOk())
+				.andDo(print())
+				.andExpect(
+						content().contentTypeCompatibleWith(
+								MediaType.APPLICATION_JSON))
+				.andExpect(
+						jsonPath("$[0].id").value(
+								ServiceTestConfiguration.ACCOUNT_ID))
+				.andExpect(
+						jsonPath("$[0].creationdate").value(
+								ServiceTestConfiguration.ACCOUNT_DATE.getTime()))
+				.andExpect(
+						jsonPath("$[0].openbalance").value(
+								ServiceTestConfiguration.ACCOUNT_OPEN_BALANCE
+										.doubleValue()))
+				.andExpect(
+						jsonPath("$[0].balance").value(
+								ServiceTestConfiguration.ACCOUNT_BALANCE))
+				.andDo(print());
+	}
+	
+	/**
+	 * Test the GET to <code>/accounts/transaction/</code>.
 	 * test increase of balance.
 	 * @throws Exception
 	 */
 	@Test
 	public void doIncreaseBalance() throws Exception {
-		when(service.findAccount(ServiceTestConfiguration.USER_ID))
+		when(service.findAccount(ServiceTestConfiguration.ACCOUNT_ID))
 				.thenReturn(ServiceTestConfiguration.account());
 
 		MvcResult result = mockMvc.perform(
-				get("/accounts/" + ServiceTestConfiguration.USER_ID + "/increaseBalance/" + 1000)
+				post("/accounts/transaction")
 						.contentType(MediaType.APPLICATION_JSON).content(
 								convertObjectToJson(ServiceTestConfiguration
-										.account())))
+										.getCreditTransaction())))
 				.andExpect(status().isOk())
 				.andDo(print())
-				.andExpect(content().string(String.valueOf(ServiceTestConfiguration.ACCOUNT_BALANCE.doubleValue() + 1000)))
+				.andExpect(content().string("SUCCESS"))
 				.andReturn();
-		String resultStr = result.getResponse().getContentAsString();
-		
 	}
 	/**
-	 * Test the GET to <code>/account/userid/increaseBalance/</code>.
+	 * Test the GET to <code>/account/transaction</code>.
 	 * test increase of balance with negative amount.
 	 * @throws Exception
 	 */
 	@Test
 	public void doIncreaseBalanceNegative() throws Exception {
-		when(service.findAccount(ServiceTestConfiguration.USER_ID))
+		when(service.findAccount(ServiceTestConfiguration.ACCOUNT_ID))
 				.thenReturn(ServiceTestConfiguration.account());
 
 		MvcResult result = mockMvc.perform(
-				get("/accounts/" + ServiceTestConfiguration.USER_ID + "/increaseBalance/" + -1000)
+				post("/accounts/transaction")
 						.contentType(MediaType.APPLICATION_JSON).content(
 								convertObjectToJson(ServiceTestConfiguration
-										.account())))
+										.getBadCreditTransaction())))
 				.andExpect(status().isExpectationFailed())
 				.andDo(print())
-				.andExpect(content().string(String.valueOf(ServiceTestConfiguration.ACCOUNT_BALANCE.doubleValue())))
+				.andExpect(content().string("FAILED"))
 				.andReturn();
-		
 	}
 
 	/**
-	 * Test the GET to <code>/account/userid/decreaseBalance/</code>.
+	 * Test the GET to <code>/account/transaction</code>.
 	 * test decrease of balance.
 	 * @throws Exception
 	 */
 	@Test
 	public void doDecreaseBalance() throws Exception {
-		when(service.findAccount(ServiceTestConfiguration.USER_ID))
+		when(service.findAccount(ServiceTestConfiguration.ACCOUNT_ID))
 				.thenReturn(ServiceTestConfiguration.account());
 
 		mockMvc.perform(
-				get("/accounts/" + ServiceTestConfiguration.USER_ID + "/decreaseBalance/" + 10)
+				post("/accounts/transaction")
 						.contentType(MediaType.APPLICATION_JSON).content(
 								convertObjectToJson(ServiceTestConfiguration
-										.account())))
+										.getDebitTransaction())))
 				.andExpect(status().isOk())
 				.andDo(print())
-				.andExpect(content().string(String.valueOf(ServiceTestConfiguration.ACCOUNT_BALANCE.doubleValue() - 10)))
+				.andExpect(content().string("SUCCESS"))
 				.andDo(print());
 	}
 	
 	/**
-	 * Test the GET to <code>/account/userid/decreaseBalance/</code>.
+	 * Test the GET to <code>/account/transaction</code>.
 	 * test decrease of balance with not enough funds.
 	 * @throws Exception
 	 */
+
 	@Test
 	public void doDecreaseBalanceNoFunds() throws Exception {
-		when(service.findAccount(ServiceTestConfiguration.USER_ID))
+		when(service.findAccount(ServiceTestConfiguration.ACCOUNT_ID))
 				.thenReturn(ServiceTestConfiguration.account());
 
 		mockMvc.perform(
-				get("/accounts/" + ServiceTestConfiguration.USER_ID + "/decreaseBalance/" + ServiceTestConfiguration.ACCOUNT_BALANCE.add(BigDecimal.TEN))
+				post("/accounts/transaction")
 						.contentType(MediaType.APPLICATION_JSON).content(
 								convertObjectToJson(ServiceTestConfiguration
-										.account())))
+										.getBadDebitTransaction())))
 				.andExpect(status().isExpectationFailed())
 				.andDo(print())
-				.andExpect(content().string(String.valueOf(ServiceTestConfiguration.ACCOUNT_BALANCE.doubleValue())))
+				.andExpect(content().string("FAILED"))
 				.andDo(print());
 	}
 	private byte[] convertObjectToJson(Object request) throws Exception {

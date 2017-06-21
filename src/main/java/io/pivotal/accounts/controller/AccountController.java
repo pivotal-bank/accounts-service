@@ -1,8 +1,12 @@
 package io.pivotal.accounts.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import io.pivotal.accounts.domain.Account;
+import io.pivotal.accounts.domain.AccountType;
+import io.pivotal.accounts.domain.Transaction;
+import io.pivotal.accounts.domain.TransactionType;
 import io.pivotal.accounts.service.AccountService;
 
 import org.slf4j.Logger;
@@ -26,10 +30,8 @@ import org.springframework.web.util.UriComponentsBuilder;
  * <ul>
  * <li>GET <code>/accounts/{id}</code> retrieves the account with given id.
  * <li>POST <code>/accounts</code> stores the account object passed in body.
- * <li>GET <code>/accounts/{id}/increaseBalance/{amount}</code> increases the
- * balance of the account with given id by amount.
- * <li>GET <code>/accounts/{id}/decreaseBalance/{amount}</code> decreases the
- * balance of the account with given id by amount.
+ * <li>POST <code>/accounts/transaction</code> receives a transaction to
+ * process.
  * </ul>
  * <p>
  * 
@@ -40,7 +42,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RestController
 public class AccountController {
 
-	private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(AccountController.class);
 
 	/**
 	 * The service to delegate calls to.
@@ -49,31 +52,39 @@ public class AccountController {
 	private AccountService service;
 
 	/**
-	 * REST call to retrieve the account with the given id as userId.
+	 * REST call to retrieve the account with the given id.
 	 * 
 	 * @param id
-	 *            The id of the user to retrieve the account for.
+	 *            The id of the account to retrieve the account for.
 	 * @return The account object if found.
 	 */
-	@RequestMapping(value = "/account/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/accounts/{id}", method = RequestMethod.GET)
 	public ResponseEntity<Account> find(@PathVariable("id") final Integer id) {
 
 		logger.info("AccountController.find: id=" + id);
 
 		Account accountResponse = this.service.findAccount(id);
-		return new ResponseEntity<Account>(accountResponse, getNoCacheHeaders(), HttpStatus.OK);
+		return new ResponseEntity<Account>(accountResponse,
+				getNoCacheHeaders(), HttpStatus.OK);
 
 	}
 
-	// TODO: do we need this? need to change web service to use find() above.
-	@RequestMapping(value = "/account/", method = RequestMethod.GET)
-	public ResponseEntity<Account> findAccount(@RequestParam(value = "name") final String id) {
+	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
+	public ResponseEntity<List<Account>> findAccounts(
+			@RequestParam(value = "name") final String id,
+			@RequestParam(value = "type", required = false) final String type) {
 
 		logger.info("AccountController.findAccount: id=" + id);
-
-		Account accountResponse = this.service.findAccount(id);
-		return new ResponseEntity<Account>(accountResponse, getNoCacheHeaders(), HttpStatus.OK);
-
+		if (type == null) {
+			List<Account> accountResponse = this.service.findAccounts(id);
+			return new ResponseEntity<List<Account>>(accountResponse,
+					getNoCacheHeaders(), HttpStatus.OK);
+		} else {
+			List<Account> accountResponse = this.service.findAccountsByType(id,
+					AccountType.valueOf(type));
+			return new ResponseEntity<List<Account>>(accountResponse,
+					getNoCacheHeaders(), HttpStatus.OK);
+		}
 	}
 
 	/**
@@ -84,91 +95,84 @@ public class AccountController {
 	 * @param builder
 	 * @return
 	 */
-	@RequestMapping(value = "/account", method = RequestMethod.POST)
-	public ResponseEntity<String> save(@RequestBody Account accountRequest, UriComponentsBuilder builder) {
+	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
+	public ResponseEntity<String> save(@RequestBody Account accountRequest,
+			UriComponentsBuilder builder) {
 
-		logger.debug("AccountController.save: userId=" + accountRequest.getUserid());
+		logger.debug("AccountController.save: userId="
+				+ accountRequest.getUserid());
 
 		Integer accountProfileId = this.service.saveAccount(accountRequest);
 		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.setLocation(builder.path("/account/{id}").buildAndExpand(accountProfileId).toUri());
+		responseHeaders.setLocation(builder.path("/account/{id}")
+				.buildAndExpand(accountProfileId).toUri());
 		return new ResponseEntity<String>(responseHeaders, HttpStatus.CREATED);
 	}
 
+	//TODO move logic to AccountService!
 	/**
-	 * REST call to decrease the balance in the account. Decreases the balance
-	 * of the account if the new balance is not lower than zero. Returns HTTP OK
-	 * and the new balance if the decrease was successful, or HTTP
-	 * EXPECTATION_FAILED if the new balance would be negative and the
-	 * old/current balance.
+	 * REST call to process a transaction of an account.
 	 * 
-	 * @param userId
-	 *            The id of the account.
-	 * @param amount
-	 *            The amount to decrease the balance by.
-	 * @return The new balance of the account with HTTP OK.
+	 * @param transaction the transaction to process.
+	 * @return a response entity with either SUCCESS or FAILED.
 	 */
-	@RequestMapping(value = "/accounts/{userId}/decreaseBalance/{amount}", method = RequestMethod.GET)
-	public ResponseEntity<Double> decreaseBalance(@PathVariable("userId") final String userId, @PathVariable("amount") final double amount) {
+	@RequestMapping(value = "/accounts/transaction", method = RequestMethod.POST)
+	public ResponseEntity<String> transaction(
+			@RequestBody Transaction transaction) {
+		logger.debug("AccountController.transaction: " + transaction.toString());
+		if (transaction.getType().equals(TransactionType.DEBIT)) {
+			logger.debug("debit transaction");
+			Account accountResponse = this.service.findAccount(transaction
+					.getAccountId());
 
-		logger.debug("AccountController.decreaseBalance: id='" + userId + "', amount='" + amount + "'");
+			BigDecimal currentBalance = accountResponse.getBalance();
 
-		Account accountResponse = this.service.findAccount(userId);
+			BigDecimal newBalance = currentBalance.subtract(transaction
+					.getAmount());
 
-		BigDecimal currentBalance = accountResponse.getBalance();
+			if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
+				accountResponse.setBalance(newBalance);
+				this.service.saveAccount(accountResponse);
+				// TODO save transaction?
+				logger.debug("transaction processed.");
+				return new ResponseEntity<String>("SUCCESS",
+						getNoCacheHeaders(), HttpStatus.OK);
 
-		BigDecimal newBalance = currentBalance.subtract(new BigDecimal(amount));
+			} else {
+				// no sufficient founds available
+				return new ResponseEntity<String>("FAILED",
+						getNoCacheHeaders(), HttpStatus.EXPECTATION_FAILED);
+			}
 
-		if (newBalance.compareTo(BigDecimal.ZERO) >= 0) {
-			accountResponse.setBalance(newBalance);
-			this.service.saveAccount(accountResponse);
-			return new ResponseEntity<Double>(accountResponse.getBalance().doubleValue(), getNoCacheHeaders(), HttpStatus.OK);
+		} else if (transaction.getType().equals(TransactionType.CREDIT)) {
+			logger.debug("credit transaction");
+			Account accountResponse = this.service.findAccount(transaction.getAccountId());
 
-		} else {
-			// no sufficient founds available
-			return new ResponseEntity<Double>(accountResponse.getBalance().doubleValue(), getNoCacheHeaders(), HttpStatus.EXPECTATION_FAILED);
+			BigDecimal currentBalance = accountResponse.getBalance();
+
+			logger.debug("AccountController.transaction: current balance='"
+					+ currentBalance + "'.");
+
+			if (transaction.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+
+				BigDecimal newBalance = currentBalance.add(transaction.getAmount());
+				logger.debug("AccountController.increaseBalance: new balance='"
+						+ newBalance + "'.");
+
+				accountResponse.setBalance(newBalance);
+				this.service.saveAccount(accountResponse);
+				// TODO save transaction?
+				return new ResponseEntity<String>("SUCCESS", getNoCacheHeaders(), HttpStatus.OK);
+
+			} else {
+				// amount can not be negative for increaseBalance, please use
+				// decreaseBalance
+				return new ResponseEntity<String>("FAILED", getNoCacheHeaders(),
+						HttpStatus.EXPECTATION_FAILED);
+			}
+
 		}
-
-	}
-
-	/**
-	 * REST call to increase the balance in the account. Increases the balance
-	 * of the account if the amount is not negative. Returns HTTP OK and the new
-	 * balance if the increase was successful, or HTTP EXPECTATION_FAILED if the
-	 * amount given is negative.
-	 * 
-	 * @param userId
-	 *            The id of the account.
-	 * @param amount
-	 *            The amount to increase the balance by.
-	 * @return The new balance of the account with HTTP OK.
-	 */
-	@RequestMapping(value = "/accounts/{userId}/increaseBalance/{amount}", method = RequestMethod.GET)
-	public ResponseEntity<Double> increaseBalance(@PathVariable("userId") final String userId, @PathVariable("amount") final double amount) {
-
-		logger.debug("AccountController.increaseBalance: id='" + userId + "', amount='" + amount + "'");
-
-		Account accountResponse = this.service.findAccount(userId);
-
-		BigDecimal currentBalance = accountResponse.getBalance();
-
-		logger.debug("AccountController.increaseBalance: current balance='" + currentBalance + "'.");
-
-		if (amount > 0) {
-
-			BigDecimal newBalance = currentBalance.add(new BigDecimal(amount));
-			logger.debug("AccountController.increaseBalance: new balance='" + newBalance + "'.");
-
-			accountResponse.setBalance(newBalance);
-			this.service.saveAccount(accountResponse);
-			return new ResponseEntity<Double>(accountResponse.getBalance().doubleValue(), getNoCacheHeaders(), HttpStatus.OK);
-
-		} else {
-			// amount can not be negative for increaseBalance, please use
-			// decreaseBalance
-			return new ResponseEntity<Double>(accountResponse.getBalance().doubleValue(), getNoCacheHeaders(), HttpStatus.EXPECTATION_FAILED);
-		}
-
+		return null;
 	}
 
 	private HttpHeaders getNoCacheHeaders() {
