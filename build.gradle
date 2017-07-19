@@ -33,6 +33,11 @@ apply plugin: 'org.springframework.boot'
 apply plugin: "io.spring.dependency-management"
 apply plugin: "com.gorylenko.gradle-git-properties"
 
+File git = new File('.git')
+if(!git.isDirectory()) {
+	project.gitProperties.gitRepositoryRoot = new File(git.text.split(':')[1].trim())
+}
+
 println version
 
 test { finalizedBy jacocoTestReport }
