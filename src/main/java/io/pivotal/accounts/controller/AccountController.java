@@ -1,6 +1,7 @@
 package io.pivotal.accounts.controller;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 
 import io.pivotal.accounts.domain.Account;
@@ -15,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * REST controller for the accounts microservice. Provides the following
@@ -37,6 +43,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * 
  * @author David Ferreira Pinto
  * @author Maxim Avezbakiev
+ * @author Simon Rowe
  *
  */
 @RestController
@@ -59,7 +66,7 @@ public class AccountController {
 	 * @return The account object if found.
 	 */
 	@RequestMapping(value = "/accounts/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Account> find(@PathVariable("id") final Integer id) {
+	public ResponseEntity<Account> find(@PathVariable("id") Integer id) {
 
 		logger.info("AccountController.find: id=" + id);
 
@@ -71,16 +78,13 @@ public class AccountController {
 
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
 	public ResponseEntity<List<Account>> findAccounts(
-			@RequestParam(value = "name") final String id,
 			@RequestParam(value = "type", required = false) final String type) {
-
-		logger.info("AccountController.findAccount: id=" + id);
 		if (type == null) {
-			List<Account> accountResponse = this.service.findAccounts(id);
+			List<Account> accountResponse = this.service.findAccounts();
 			return new ResponseEntity<List<Account>>(accountResponse,
 					getNoCacheHeaders(), HttpStatus.OK);
 		} else {
-			List<Account> accountResponse = this.service.findAccountsByType(id,
+			List<Account> accountResponse = this.service.findAccountsByType(
 					AccountType.valueOf(type));
 			return new ResponseEntity<List<Account>>(accountResponse,
 					getNoCacheHeaders(), HttpStatus.OK);
@@ -97,11 +101,11 @@ public class AccountController {
 	 */
 	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
 	public ResponseEntity<String> save(@RequestBody Account accountRequest,
-			UriComponentsBuilder builder) {
+									   UriComponentsBuilder builder, @AuthenticationPrincipal OAuth2User oAuth2User) {
 
+		accountRequest.setUserid(oAuth2User.getName());
 		logger.debug("AccountController.save: userId="
 				+ accountRequest.getUserid());
-
 		Integer accountProfileId = this.service.saveAccount(accountRequest);
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.setLocation(builder.path("/account/{id}")

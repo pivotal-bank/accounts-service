@@ -60,8 +60,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountUserId() {
-		when(repo.findByUserid(ServiceTestConfiguration.USER_ID)).thenReturn(ServiceTestConfiguration.accountList());
-		List<Account> accounts = service.findAccounts(ServiceTestConfiguration.USER_ID);
+		when(repo.findByUserid()).thenReturn(ServiceTestConfiguration.accountList());
+		List<Account> accounts = service.findAccounts();
 		assertEquals(accounts.size(),1);
 		assertEquals(accounts.get(0), ServiceTestConfiguration.account());
 	}
@@ -70,8 +70,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountUserIdNotFound() {
-		when(repo.findByUserid(ServiceTestConfiguration.BAD_USER_ID)).thenReturn(new ArrayList());
-		List<Account> accounts = service.findAccounts(ServiceTestConfiguration.BAD_USER_ID);
+		when(repo.findByUserid()).thenReturn(new ArrayList());
+		List<Account> accounts = service.findAccounts();
 		assertEquals(accounts.size(),0);
 	}
 	
@@ -80,8 +80,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountsByType() {
-		when(repo.findByUseridAndType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT)).thenReturn(ServiceTestConfiguration.accountList());
-		List<Account> accounts = service.findAccountsByType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT);
+		when(repo.findByUseridAndType(AccountType.CURRENT)).thenReturn(ServiceTestConfiguration.accountList());
+		List<Account> accounts = service.findAccountsByType(AccountType.CURRENT);
 		assertEquals(accounts.size(),1);
 		assertEquals(accounts.get(0),ServiceTestConfiguration.account());
 	}

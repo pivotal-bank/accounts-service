@@ -2,6 +2,8 @@ spring:
   profiles.active: local,localmysql
   application:
      name: accounts-service
+  main:
+      allow-bean-definition-overriding: true
 info:
   build:
     group: ${group}

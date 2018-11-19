@@ -135,7 +135,7 @@ public class AccountsControllerTest {
 	 */
 	@Test
 	public void doGetAccounts() throws Exception {
-		when(service.findAccounts(ServiceTestConfiguration.USER_ID))
+		when(service.findAccounts())
 				.thenReturn(Collections.singletonList(ServiceTestConfiguration.account()));
 
 		mockMvc.perform(
@@ -171,7 +171,7 @@ public class AccountsControllerTest {
 	 */
 	@Test
 	public void doGetAccountsWithType() throws Exception {
-		when(service.findAccountsByType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT))
+		when(service.findAccountsByType(AccountType.CURRENT))
 				.thenReturn(Collections.singletonList(ServiceTestConfiguration.account()));
 
 		mockMvc.perform(

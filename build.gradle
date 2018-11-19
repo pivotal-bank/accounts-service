@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.6.RELEASE'
+        springBootVersion = '2.1.0.RELEASE'
         springCloudServicesVersion = '2.0.2.RELEASE'
         springCloudVersion = 'Finchley.SR2'
     }
@@ -9,6 +9,7 @@ buildscript {
         mavenCentral()
         maven { url "http://repo.spring.io/milestone" }
         maven { url "http://repo.spring.io/snapshot" }
+
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
@@ -17,6 +18,8 @@ buildscript {
         classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:1.4.7"
     }
 }
+
+ext['spring-security.version'] = '5.1.1.RELEASE'
 
 repositories {
     mavenLocal()
@@ -95,6 +98,12 @@ dependencies {
     implementation("io.pivotal.spring.cloud:spring-cloud-services-starter-config-client")
     implementation("io.pivotal.spring.cloud:spring-cloud-services-starter-service-registry")
     implementation("io.pivotal.spring.cloud:spring-cloud-services-starter-circuit-breaker")
+    implementation("org.springframework.security:spring-security-data")
+    implementation("org.springframework.security:spring-security-oauth2-resource-server")
+    implementation("org.springframework.security:spring-security-oauth2-jose")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    runtimeOnly("org.springframework.boot:spring-boot-devtools")
 
     //test packages
     testImplementation("org.springframework.boot:spring-boot-starter-test")
