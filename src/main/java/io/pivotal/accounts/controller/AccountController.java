@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -100,17 +101,16 @@ public class AccountController {
 	 * @return
 	 */
 	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
-	public ResponseEntity<String> save(@RequestBody Account accountRequest,
-									   UriComponentsBuilder builder, @AuthenticationPrincipal OAuth2User oAuth2User) {
-
-		accountRequest.setUserid(oAuth2User.getName());
+	public Boolean save(@RequestBody Account accountRequest,
+									   UriComponentsBuilder builder, @AuthenticationPrincipal JwtAuthenticationToken token) {
+		accountRequest.setUserid(token.getName());
 		logger.debug("AccountController.save: userId="
 				+ accountRequest.getUserid());
 		Integer accountProfileId = this.service.saveAccount(accountRequest);
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.setLocation(builder.path("/account/{id}")
 				.buildAndExpand(accountProfileId).toUri());
-		return new ResponseEntity<String>(responseHeaders, HttpStatus.CREATED);
+		return Boolean.TRUE;
 	}
 
 	//TODO move logic to AccountService!
