@@ -5,5 +5,11 @@ applications:
   timeout: 180
   instances: 1
   memory: 1G
-  path: libs/accounts-${version}.jar
-  services: [ traderdb, discovery-service, circuit-breaker-dashboard, config-server ]
+  path: libs/accounts-service-${version}.jar
+  services:
+   - service-registry
+   - circuit-breaker-dashboard
+   - config-server
+   - traderdb
+  env:
+    SPRING_PROFILES_ACTIVE: cloud

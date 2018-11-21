@@ -6,6 +6,9 @@ import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Microservice to manage user accounts.
  * <p>
@@ -21,5 +24,10 @@ public class AccountsApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AccountsApplication.class, args);
+    }
+
+    static {
+        HostnameVerifier allHostsValid = (name, sslSession) -> true;
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
 }
