@@ -11,9 +11,11 @@ import java.util.List;
 
 public interface AccountRepository extends CrudRepository<Account,Integer> {
 
-	@Query("from Account where type = :type")
+	@Query("from Account where type = :type and userid = ?#{principal.claims['user_id']}")
+	//@Query("from Account where type = :type")
 	List<Account> findByUseridAndType(@Param("type") AccountType type);
 
-	@Query("from Account ")
+	@Query("from Account where userid = ?#{principal.claims['user_id']}")
+	//@Query("from Account")
     List<Account> findByUserid();
 }
