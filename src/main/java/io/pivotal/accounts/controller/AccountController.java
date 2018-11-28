@@ -103,7 +103,11 @@ public class AccountController {
 	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
 	public Boolean save(@RequestBody Account accountRequest,
 									   UriComponentsBuilder builder, @AuthenticationPrincipal JwtAuthenticationToken token) {
-		accountRequest.setUserid(token.getName());
+		if (token != null) {
+			accountRequest.setUserid(token.getName());
+		} else {
+			accountRequest.setUserid("hello");
+		}
 		logger.debug("AccountController.save: userId="
 				+ accountRequest.getUserid());
 		Integer accountProfileId = this.service.saveAccount(accountRequest);
