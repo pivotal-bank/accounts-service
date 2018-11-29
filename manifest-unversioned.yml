@@ -11,5 +11,6 @@ applications:
    - circuit-breaker-dashboard
    - config-server
    - traderdb
+   - newrelic
   env:
     SPRING_PROFILES_ACTIVE: cloud
