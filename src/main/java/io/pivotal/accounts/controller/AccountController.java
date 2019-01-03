@@ -20,12 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -101,6 +96,7 @@ public class AccountController {
 	 * @return
 	 */
 	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
 	public Boolean save(@RequestBody Account accountRequest,
 									   UriComponentsBuilder builder, @AuthenticationPrincipal JwtAuthenticationToken token) {
 		if (token != null) {

@@ -6,6 +6,8 @@ applications:
   instances: 1
   memory: 1G
   path: libs/accounts-service-${version}.jar
+  buildpacks:
+   - https://github.com/cloudfoundry/java-buildpack.git#v4.16.1
   services:
    - service-registry
    - circuit-breaker-dashboard

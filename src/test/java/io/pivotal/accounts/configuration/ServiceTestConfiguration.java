@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -72,7 +73,7 @@ public class ServiceTestConfiguration  {
 	public static String PASSWORD = "password";
 	public static String BAD_USER_ID  = "NA";
 	public static String BAD_PASSWORD  = "NA";
-	public static Date ACCOUNT_DATE = new Date(1329759342904l);
+	public static DateTime ACCOUNT_DATE = new DateTime(1329759342904l);
 	//Order constants
 	public static Integer ORDER_ID 	=  555;
 	public static BigDecimal ORDER_PRICE = BigDecimal.valueOf(100);
@@ -144,7 +145,7 @@ public class ServiceTestConfiguration  {
 		account.setId(ACCOUNT_ID);
 		account.setBalance(ACCOUNT_BALANCE);
 		account.setOpenbalance(ACCOUNT_OPEN_BALANCE);
-		account.setCreationdate(ACCOUNT_DATE);
+		account.setCreationdate(ACCOUNT_DATE.toDate());
 		account.setUserid(USER_ID);
 		account.setName("SOME_NAME");
 		account.setType(AccountType.SAVINGS);
