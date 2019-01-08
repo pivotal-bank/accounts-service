@@ -54,14 +54,8 @@ jacocoTestReport {
     group = "Reporting"
     description = "Generate Jacoco coverage reports after running tests."
     reports {
-
         csv.enabled false
-
-        html {
-            enabled true
-            destination "${buildDir}/reports/jacoco"
-        }
-
+        html.destination file("${buildDir}/jacocoHtml")
         xml.enabled false
     }
 
@@ -107,6 +101,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation('org.springframework.cloud:spring-cloud-stream')
     implementation('org.springframework.cloud:spring-cloud-starter-stream-rabbit')
+    implementation('joda-time:joda-time:2.10.1')
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
 
     //test packages
@@ -127,4 +122,4 @@ jar { baseName = 'accounts' }
 description = "Micro-service to deal with accounts and user logins"
 
 
-task wrapper(type: Wrapper) { gradleVersion = '4.6' }
+task wrapper(type: Wrapper) { gradleVersion = '5.1' }
