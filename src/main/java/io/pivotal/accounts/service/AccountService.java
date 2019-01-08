@@ -1,6 +1,7 @@
 package io.pivotal.accounts.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.pivotal.accounts.domain.Account;
 import io.pivotal.accounts.domain.AccountType;
@@ -41,34 +42,29 @@ public class AccountService {
 
 		logger.debug("AccountService.findAccount: id=" + id);
 
-		Account account = accounts.findOne(id);
-		if (account == null) {
+		Optional<Account> account = accounts.findById(id);
+		if (!account.isPresent()) {
 			logger.warn("AccountService.findAccount: could not find account with id: " + id);
 			throw new NoRecordsFoundException();
 		}
 
-		logger.info(String.format("AccountService.findAccount - retrieved account with id: %s. Payload is: %s", id, account));
+		logger.info(String.format("AccountService.findAccount - retrieved account with id: %s. Payload is: %s", id, account.get()));
 
-		return account;
+		return account.get();
 	}
 
 	/**
 	 * Retrieve a list of accounts for a given user. The id here is the unique user id
 	 * value of the account, ie the username.
-	 * 
-	 * @param user
-	 *            The user id of the account.
 	 * @return The account object if found
 	 */
-	public List<Account> findAccounts(String user) {
+	public List<Account> findAccounts() {
 
-		logger.debug("AccountService.findAccounts: id=" + user);
-
-		List<Account> account = accounts.findByUserid(user);
+		List<Account> account = accounts.findByUserid();
 		
 		logger.debug("Found " + account.size() + " account(s).");
 		
-		logger.info(String.format("AccountService.findAccount - retrieved account for user id: %s. Payload is: %s", user, account));
+		logger.info(String.format("AccountService.findAccount - retrieved account for user  Payload is: %s", account));
 
 		return account;
 	}
@@ -76,21 +72,19 @@ public class AccountService {
 	/**
 	 * Retrieve a list of accounts for a given user. The id here is the unique user id
 	 * value of the account, ie the username.
-	 * 
-	 * @param id
-	 *            The user id of the account.
+	 *
 	 * @param type The type of the account to return.
 	 * @return The account object if found
 	 */
-	public List<Account> findAccountsByType(String id, AccountType type) {
+	public List<Account> findAccountsByType(AccountType type) {
 
-		logger.debug("AccountService.findAccount: id=" + id + " and type: " + type.toString());
+		logger.debug("AccountService.findAccount: and type: " + type.toString());
 
-		List<Account> account = accounts.findByUseridAndType(id,type);
+		List<Account> account = accounts.findByUseridAndType(type);
 		
 		logger.debug("Found " + account.size() + " account(s).");
 		
-		logger.info(String.format("AccountService.findAccount - retrieved account with id: %s. Payload is: %s", id, account));
+		logger.info(String.format("AccountService.findAccount - retrieved account with Payload is: %s",  account));
 
 		return account;
 	}
@@ -106,8 +100,6 @@ public class AccountService {
 
 		logger.debug("AccountService.saveAccount:" + accountRequest.toString());
 		// need to set some stuff that cannot be null!
-		
-
 		Account account = accounts.save(accountRequest);
 		logger.info("AccountService.saveAccount: account saved: " + account);
 		return account.getId();

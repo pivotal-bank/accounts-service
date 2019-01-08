@@ -9,6 +9,7 @@ import static org.mockito.Matchers.isA;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.pivotal.accounts.configuration.ServiceTestConfiguration;
 import io.pivotal.accounts.domain.Account;
@@ -19,9 +20,11 @@ import io.pivotal.accounts.repository.AccountRepository;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
@@ -30,28 +33,22 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author David Ferreira Pinto
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AccountServiceTest {
-	MockMvc mockMvc;
 
 	@InjectMocks
 	AccountService service;
 	
 	@Mock
 	AccountRepository repo;
-	
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
 
-	    this.mockMvc = MockMvcBuilders.standaloneSetup(service).build();
-	}
 
 	/**
 	 * test retrieval of account by integer.
 	 */
 	@Test
 	public void doFindAccount() {
-		when(repo.findOne(ServiceTestConfiguration.PROFILE_ID)).thenReturn(ServiceTestConfiguration.account());
+		when(repo.findById(ServiceTestConfiguration.PROFILE_ID)).thenReturn(Optional.of(ServiceTestConfiguration.account()));
 		assertEquals(service.findAccount(ServiceTestConfiguration.PROFILE_ID).toString(),ServiceTestConfiguration.account().toString());
 	}
 	/**
@@ -59,8 +56,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountUserId() {
-		when(repo.findByUserid(ServiceTestConfiguration.USER_ID)).thenReturn(ServiceTestConfiguration.accountList());
-		List<Account> accounts = service.findAccounts(ServiceTestConfiguration.USER_ID);
+		when(repo.findByUserid()).thenReturn(ServiceTestConfiguration.accountList());
+		List<Account> accounts = service.findAccounts();
 		assertEquals(accounts.size(),1);
 		assertEquals(accounts.get(0), ServiceTestConfiguration.account());
 	}
@@ -69,8 +66,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountUserIdNotFound() {
-		when(repo.findByUserid(ServiceTestConfiguration.BAD_USER_ID)).thenReturn(new ArrayList());
-		List<Account> accounts = service.findAccounts(ServiceTestConfiguration.BAD_USER_ID);
+		when(repo.findByUserid()).thenReturn(new ArrayList());
+		List<Account> accounts = service.findAccounts();
 		assertEquals(accounts.size(),0);
 	}
 	
@@ -79,8 +76,8 @@ public class AccountServiceTest {
 	 */
 	@Test
 	public void doFindAccountsByType() {
-		when(repo.findByUseridAndType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT)).thenReturn(ServiceTestConfiguration.accountList());
-		List<Account> accounts = service.findAccountsByType(ServiceTestConfiguration.USER_ID,AccountType.CURRENT);
+		when(repo.findByUseridAndType(AccountType.CURRENT)).thenReturn(ServiceTestConfiguration.accountList());
+		List<Account> accounts = service.findAccountsByType(AccountType.CURRENT);
 		assertEquals(accounts.size(),1);
 		assertEquals(accounts.get(0),ServiceTestConfiguration.account());
 	}
@@ -90,7 +87,7 @@ public class AccountServiceTest {
 	 */
 	@Test(expected=NoRecordsFoundException.class)
 	public void doFindNullAccount() {
-		when(repo.findOne(999)).thenReturn(null);
+		when(repo.findById(999)).thenReturn(Optional.empty());
 		service.findAccount(999);
 	}
 	
