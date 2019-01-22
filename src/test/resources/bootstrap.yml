@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  sleuth:
+    enabled: false
+eureka:
+  client:
+    enabled: false
